@@ -1,0 +1,77 @@
+class VietnamProvince {
+  final String name;
+  final String region; // 'North', 'Central', 'South'
+
+  const VietnamProvince(this.name, this.region);
+}
+
+const List<VietnamProvince> vietnamProvinces = [
+  // Miền Bắc (North)
+  VietnamProvince('Hà Nội', 'North'),
+  VietnamProvince('Hà Giang', 'North'),
+  VietnamProvince('Cao Bằng', 'North'),
+  VietnamProvince('Bắc Kạn', 'North'),
+  VietnamProvince('Tuyên Quang', 'North'),
+  VietnamProvince('Lào Cai', 'North'),
+  VietnamProvince('Điện Biên', 'North'),
+  VietnamProvince('Lai Châu', 'North'),
+  VietnamProvince('Sơn La', 'North'),
+  VietnamProvince('Yên Bái', 'North'),
+  VietnamProvince('Hòa Bình', 'North'),
+  VietnamProvince('Thái Nguyên', 'North'),
+  VietnamProvince('Lạng Sơn', 'North'),
+  VietnamProvince('Quảng Ninh', 'North'),
+  VietnamProvince('Bắc Giang', 'North'),
+  VietnamProvince('Phú Thọ', 'North'),
+  VietnamProvince('Vĩnh Phúc', 'North'),
+  VietnamProvince('Bắc Ninh', 'North'),
+  VietnamProvince('Hải Dương', 'North'),
+  VietnamProvince('Hải Phòng', 'North'),
+  VietnamProvince('Hưng Yên', 'North'),
+  VietnamProvince('Thái Bình', 'North'),
+  VietnamProvince('Hà Nam', 'North'),
+  VietnamProvince('Nam Định', 'North'),
+  VietnamProvince('Ninh Bình', 'North'),
+
+  // Miền Trung (Central)
+  VietnamProvince('Thanh Hóa', 'Central'),
+  VietnamProvince('Nghệ An', 'Central'),
+  VietnamProvince('Hà Tĩnh', 'Central'),
+  VietnamProvince('Quảng Bình', 'Central'),
+  VietnamProvince('Quảng Trị', 'Central'),
+  VietnamProvince('Thừa Thiên Huế', 'Central'),
+  VietnamProvince('Đà Nẵng', 'Central'),
+  VietnamProvince('Quảng Nam', 'Central'),
+  VietnamProvince('Quảng Ngãi', 'Central'),
+  VietnamProvince('Bình Định', 'Central'),
+  VietnamProvince('Phú Yên', 'Central'),
+  VietnamProvince('Khánh Hòa', 'Central'),
+  VietnamProvince('Ninh Thuận', 'Central'),
+  VietnamProvince('Bình Thuận', 'Central'),
+  VietnamProvince('Kon Tum', 'Central'),
+  VietnamProvince('Gia Lai', 'Central'),
+  VietnamProvince('Đắk Lắk', 'Central'),
+  VietnamProvince('Đắk Nông', 'Central'),
+  VietnamProvince('Lâm Đồng', 'Central'),
+
+  // Miền Nam (South)
+  VietnamProvince('Bình Phước', 'South'),
+  VietnamProvince('Tây Ninh', 'South'),
+  VietnamProvince('Bình Dương', 'South'),
+  VietnamProvince('Đồng Nai', 'South'),
+  VietnamProvince('Bà Rịa - Vũng Tàu', 'South'),
+  VietnamProvince('TP Hồ Chí Minh', 'South'),
+  VietnamProvince('Long An', 'South'),
+  VietnamProvince('Tiền Giang', 'South'),
+  VietnamProvince('Bến Tre', 'South'),
+  VietnamProvince('Trà Vinh', 'South'),
+  VietnamProvince('Vĩnh Long', 'South'),
+  VietnamProvince('Đồng Tháp', 'South'),
+  VietnamProvince('An Giang', 'South'),
+  VietnamProvince('Kiên Giang', 'South'),
+  VietnamProvince('Cần Thơ', 'South'),
+  VietnamProvince('Hậu Giang', 'South'),
+  VietnamProvince('Sóc Trăng', 'South'),
+  VietnamProvince('Bạc Liêu', 'South'),
+  VietnamProvince('Cà Mau', 'South'),
+];

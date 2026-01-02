@@ -12,6 +12,8 @@ app.use(express.json());
 app.use(cors());
 
 // Routes
+app.get('/ping', (req, res) => res.send('pong ' + Date.now()));
+app.use('/api/payment', require('./routes/payment_routes'));
 app.use('/api', authRouter);
 app.use('/api/products', require('./routes/product_routes'));
 app.use('/api/vouchers', require('./routes/voucher_routes'));
@@ -20,6 +22,7 @@ app.use('/api/orders', require('./routes/order_routes'));
 app.use('/api/upload', require('./routes/upload_routes'));
 app.use('/api', require('./routes/review_routes'));
 app.use('/api/chat', require('./routes/chat_routes'));
+app.use('/api/notifications', require('./routes/notification_routes'));
 
 // Serve static files
 app.use('/uploads', express.static('uploads')); // New User Routes

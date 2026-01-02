@@ -45,18 +45,22 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
   @override
   Widget build(BuildContext context) {
     final currencyFormat = NumberFormat.currency(locale: 'vi_VN', symbol: '₫');
+    final theme = Theme.of(context);
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Sản phẩm yêu thích"),
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black,
+        title: Text(
+          "Sản phẩm yêu thích",
+          style: theme.textTheme.headlineMedium,
+        ),
+        backgroundColor: theme.scaffoldBackgroundColor,
         elevation: 0,
+        iconTheme: theme.iconTheme,
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : _favorites.isEmpty
-          ? _buildEmptyState()
+          ? _buildEmptyState(theme)
           : GridView.builder(
               padding: const EdgeInsets.all(16),
               gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
@@ -83,11 +87,12 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                   },
                   child: Container(
                     decoration: BoxDecoration(
-                      color: Colors.white,
+                      color: theme.cardColor,
                       borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: theme.dividerColor),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withOpacity(0.05),
+                          color: Colors.black.withValues(alpha: 0.2),
                           blurRadius: 10,
                           offset: const Offset(0, 4),
                         ),
@@ -104,13 +109,14 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                                   top: Radius.circular(12),
                                 ),
                                 child: Image.network(
-                                  product.imageUrl,
+                                  product.fullImageUrl,
                                   fit: BoxFit.cover,
                                   width: double.infinity,
                                   errorBuilder: (_, __, ___) => Container(
-                                    color: Colors.grey[200],
+                                    color: Colors.grey[800],
                                     child: const Icon(
                                       Icons.image_not_supported,
+                                      color: Colors.white54,
                                     ),
                                   ),
                                 ),
@@ -122,8 +128,10 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                                   onTap: () => _toggleFavorite(product.id),
                                   child: Container(
                                     padding: const EdgeInsets.all(6),
-                                    decoration: const BoxDecoration(
-                                      color: Colors.white,
+                                    decoration: BoxDecoration(
+                                      color: Colors.black.withValues(
+                                        alpha: 0.6,
+                                      ),
                                       shape: BoxShape.circle,
                                     ),
                                     child: const Icon(
@@ -146,15 +154,13 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                                 product.name,
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                ),
+                                style: theme.textTheme.titleMedium,
                               ),
                               const SizedBox(height: 4),
                               Text(
                                 currencyFormat.format(product.price),
-                                style: const TextStyle(
-                                  color: Colors.red,
+                                style: theme.textTheme.bodyMedium?.copyWith(
+                                  color: theme.colorScheme.primary,
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
@@ -170,20 +176,26 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
     );
   }
 
-  Widget _buildEmptyState() {
+  Widget _buildEmptyState(ThemeData theme) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.favorite_border, size: 80, color: Colors.grey[400]),
+          Icon(Icons.favorite_border, size: 80, color: theme.disabledColor),
           const SizedBox(height: 20),
-          const Text(
+          Text(
             "Chưa có sản phẩm yêu thích",
-            style: TextStyle(fontSize: 18, color: Colors.grey),
+            style: theme.textTheme.bodyLarge?.copyWith(
+              color: theme.disabledColor,
+            ),
           ),
           const SizedBox(height: 10),
           ElevatedButton(
             onPressed: () => Navigator.pop(context),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: theme.colorScheme.primary,
+              foregroundColor: theme.colorScheme.onPrimary,
+            ),
             child: const Text("Khám phá ngay"),
           ),
         ],

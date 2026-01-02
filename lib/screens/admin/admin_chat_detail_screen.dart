@@ -21,8 +21,17 @@ class AdminChatDetailScreen extends StatefulWidget {
 class _AdminChatDetailScreenState extends State<AdminChatDetailScreen> {
   final ChatService _chatService = ChatService();
   final TextEditingController _messageController = TextEditingController();
+  final ScrollController _scrollController = ScrollController();
   List<ChatMessage> _messages = [];
   Timer? _timer;
+
+  // Theme Colors
+  final Color _kPrimaryColor = const Color(0xFFD4AF37); // Gold
+  final Color _kBackgroundColor = const Color(0xFF050505); // Deep Black
+  final Color _kSurfaceColor = const Color(0xFF1A1A1A); // Dark Grey
+  final Color _kUserBubbleColor = const Color(
+    0xFF2A2A2A,
+  ); // Lighter Grey for User
 
   @override
   void initState() {
@@ -38,6 +47,7 @@ class _AdminChatDetailScreenState extends State<AdminChatDetailScreen> {
   void dispose() {
     _timer?.cancel();
     _messageController.dispose();
+    _scrollController.dispose();
     super.dispose();
   }
 
@@ -47,6 +57,7 @@ class _AdminChatDetailScreenState extends State<AdminChatDetailScreen> {
       setState(() {
         _messages = data;
       });
+      // Scroll to bottom optionally, or only on new message
     }
   }
 
@@ -62,32 +73,44 @@ class _AdminChatDetailScreenState extends State<AdminChatDetailScreen> {
     if (success) {
       _messageController.clear();
       _fetchMessages();
+      // Scroll to bottom after sending
+      Future.delayed(const Duration(milliseconds: 300), () {
+        if (_scrollController.hasClients) {
+          _scrollController.animateTo(
+            _scrollController.position.maxScrollExtent,
+            duration: const Duration(milliseconds: 300),
+            curve: Curves.easeOut,
+          );
+        }
+      });
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: _kBackgroundColor,
       appBar: AppBar(
         title: Text(
-          widget.userName,
-          style: const TextStyle(color: Colors.black),
+          "Chat: ${widget.userName}",
+          style: TextStyle(color: _kPrimaryColor, fontWeight: FontWeight.bold),
         ),
-        backgroundColor: Colors.white,
-        elevation: 1,
-        iconTheme: const IconThemeData(color: Colors.black),
+        backgroundColor: _kSurfaceColor,
+        elevation: 0,
+        iconTheme: IconThemeData(color: _kPrimaryColor),
       ),
       body: Column(
         children: [
           Expanded(
             child: ListView.builder(
-              padding: const EdgeInsets.all(16),
+              controller: _scrollController,
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
               itemCount: _messages.length,
               itemBuilder: (context, index) {
                 final msg = _messages[index];
-                // Admin is sender if current token's ID matches senderId (Actually easier to check if receiverId is user)
-                bool isMe = msg.receiverId == widget.userId;
-                return _buildMessageBubble(msg, isMe);
+                // Admin is sender if message is headed TO the user
+                bool isAdmin = msg.receiverId == widget.userId;
+                return _buildMessageBubble(msg, isAdmin);
               },
             ),
           ),
@@ -97,37 +120,75 @@ class _AdminChatDetailScreenState extends State<AdminChatDetailScreen> {
     );
   }
 
-  Widget _buildMessageBubble(ChatMessage msg, bool isMe) {
+  Widget _buildMessageBubble(ChatMessage msg, bool isAdmin) {
     final timeStr = DateFormat(
       'HH:mm',
     ).format(DateTime.fromMillisecondsSinceEpoch(msg.createdAt));
+
     return Align(
-      alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
+      alignment: isAdmin ? Alignment.centerRight : Alignment.centerLeft,
       child: Container(
-        margin: const EdgeInsets.symmetric(vertical: 4),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-        decoration: BoxDecoration(
-          color: isMe ? Colors.indigo : Colors.grey[200],
-          borderRadius: BorderRadius.circular(20).copyWith(
-            bottomRight: isMe ? Radius.zero : const Radius.circular(20),
-            bottomLeft: isMe ? const Radius.circular(20) : Radius.zero,
-          ),
+        margin: const EdgeInsets.symmetric(vertical: 8),
+        constraints: BoxConstraints(
+          maxWidth: MediaQuery.of(context).size.width * 0.75,
         ),
         child: Column(
-          crossAxisAlignment: isMe
+          crossAxisAlignment: isAdmin
               ? CrossAxisAlignment.end
               : CrossAxisAlignment.start,
           children: [
+            // Sender Label
             Text(
-              msg.text,
-              style: TextStyle(color: isMe ? Colors.white : Colors.black),
+              isAdmin ? "Admin (Bạn)" : widget.userName,
+              style: TextStyle(
+                color: Colors.white54,
+                fontSize: 10,
+                fontWeight: FontWeight.w500,
+              ),
             ),
             const SizedBox(height: 4),
-            Text(
-              timeStr,
-              style: TextStyle(
-                color: isMe ? Colors.white70 : Colors.black54,
-                fontSize: 10,
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              decoration: BoxDecoration(
+                color: isAdmin ? _kPrimaryColor : _kUserBubbleColor,
+                borderRadius: BorderRadius.only(
+                  topLeft: const Radius.circular(20),
+                  topRight: const Radius.circular(20),
+                  bottomLeft: isAdmin ? const Radius.circular(20) : Radius.zero,
+                  bottomRight: isAdmin
+                      ? Radius.zero
+                      : const Radius.circular(20),
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.2),
+                    blurRadius: 4,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    msg.text,
+                    style: TextStyle(
+                      color: isAdmin ? Colors.black : Colors.white,
+                      fontSize: 15,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Align(
+                    alignment: Alignment.bottomRight,
+                    child: Text(
+                      timeStr,
+                      style: TextStyle(
+                        color: isAdmin ? Colors.black54 : Colors.white54,
+                        fontSize: 10,
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
           ],
@@ -138,26 +199,43 @@ class _AdminChatDetailScreenState extends State<AdminChatDetailScreen> {
 
   Widget _buildMessageInput() {
     return Container(
-      padding: const EdgeInsets.all(10),
-      color: Colors.white,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: _kSurfaceColor,
+        border: Border(top: BorderSide(color: Colors.white12)),
+      ),
       child: Row(
         children: [
           Expanded(
             child: TextField(
               controller: _messageController,
+              style: const TextStyle(color: Colors.white),
               decoration: InputDecoration(
-                hintText: "Nhập tin nhắn trả lời...",
+                hintText: "Nhập tin nhắn...",
+                hintStyle: const TextStyle(color: Colors.white38),
+                filled: true,
+                fillColor: _kBackgroundColor,
                 border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(25),
+                  borderRadius: BorderRadius.circular(30),
+                  borderSide: BorderSide.none,
                 ),
-                contentPadding: const EdgeInsets.symmetric(horizontal: 20),
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 12,
+                ),
               ),
             ),
           ),
-          const SizedBox(width: 8),
-          IconButton(
-            icon: const Icon(Icons.send, color: Colors.indigo),
-            onPressed: _sendMessage,
+          const SizedBox(width: 12),
+          Container(
+            decoration: BoxDecoration(
+              color: _kPrimaryColor,
+              shape: BoxShape.circle,
+            ),
+            child: IconButton(
+              icon: const Icon(Icons.send, color: Colors.black),
+              onPressed: _sendMessage,
+            ),
           ),
         ],
       ),

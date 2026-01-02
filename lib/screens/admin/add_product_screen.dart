@@ -9,7 +9,8 @@ import 'dart:io';
 
 class AddProductScreen extends StatefulWidget {
   final String token;
-  const AddProductScreen({super.key, required this.token});
+  final Product? product;
+  const AddProductScreen({super.key, required this.token, this.product});
 
   @override
   State<AddProductScreen> createState() => _AddProductScreenState();
@@ -18,23 +19,44 @@ class AddProductScreen extends StatefulWidget {
 class _AddProductScreenState extends State<AddProductScreen> {
   final _nameController = TextEditingController();
   final _descController = TextEditingController();
-  final _priceController = TextEditingController();
   final _imageController = TextEditingController();
 
-  final List<String> categories = [
-    'Men',
-    'Women',
-    'Pants',
-    'Shirts',
-    'Accessories',
+  final List<Map<String, String>> categoryOptions = [
+    {'id': 'Men', 'name': 'Nam'},
+    {'id': 'Women', 'name': 'Nữ'},
+    {'id': 'Pants', 'name': 'Quần'},
+    {'id': 'Shirts', 'name': 'Áo'},
+    {'id': 'Accessories', 'name': 'Phụ kiện'},
   ];
   String selectedCategory = 'Men';
+
+  final List<Map<String, String>> genderOptions = [
+    {'id': 'Men', 'name': 'Nam'},
+    {'id': 'Women', 'name': 'Nữ'},
+    {'id': 'Unisex', 'name': 'Unisex (Cả hai)'},
+    {'id': 'Kids', 'name': 'Trẻ em'},
+  ];
   String selectedGender = 'Unisex';
-  final _colorsController = TextEditingController();
   final List<String> availableSizes = ['S', 'M', 'L', 'XL', 'XXL'];
   List<String> selectedSizes = [];
   bool isFeatured = false;
   bool isBestSeller = false;
+  List<ProductVariant> variants = [];
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.product != null) {
+      _nameController.text = widget.product!.name;
+      _descController.text = widget.product!.description;
+      _imageController.text = widget.product!.imageUrl;
+      selectedCategory = widget.product!.category;
+      selectedGender = widget.product!.gender;
+      isFeatured = widget.product!.isFeatured;
+      isBestSeller = widget.product!.isBestSeller;
+      variants = List.from(widget.product!.variants);
+    }
+  }
 
   final ProductService _productService = ProductService();
   final UploadService _uploadService = UploadService();
@@ -54,10 +76,17 @@ class _AddProductScreenState extends State<AddProductScreen> {
   }
 
   void _submit() async {
-    if (_nameController.text.isEmpty || _priceController.text.isEmpty) {
+    if (_nameController.text.isEmpty) {
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(SnackBar(content: Text("Vui lòng nhập đủ thông tin")));
+      ).showSnackBar(SnackBar(content: Text("Vui lòng nhập tên sản phẩm")));
+      return;
+    }
+
+    if (variants.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Vui lòng thêm ít nhất một biến thể")),
+      );
       return;
     }
 
@@ -67,6 +96,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
 
     if (_pickedImage != null) {
       String? uploadUrl = await _uploadService.uploadImage(_pickedImage!);
+      if (!mounted) return;
       if (uploadUrl != null) {
         finalImageUrl = uploadUrl;
       } else {
@@ -77,10 +107,10 @@ class _AddProductScreenState extends State<AddProductScreen> {
     }
 
     final product = Product(
-      id: '', // Backend generats ID
+      id: widget.product?.id ?? '',
       name: _nameController.text,
       description: _descController.text,
-      price: double.tryParse(_priceController.text) ?? 0,
+      price: 0, // No longer used globally, but keep for model compat
       imageUrl: finalImageUrl.isEmpty
           ? 'https://via.placeholder.com/150'
           : finalImageUrl,
@@ -88,31 +118,116 @@ class _AddProductScreenState extends State<AddProductScreen> {
       isFeatured: isFeatured,
       isBestSeller: isBestSeller,
       gender: selectedGender,
-      colors: _colorsController.text.split(',').map((e) => e.trim()).toList(),
-      sizes: selectedSizes,
+      variants: variants,
     );
 
-    final success = await _productService.createProduct(product, widget.token);
+    bool success;
+    if (widget.product == null) {
+      success = await _productService.createProduct(product, widget.token);
+    } else {
+      success = await _productService.updateProduct(product, widget.token);
+    }
 
+    if (!mounted) return;
     setState(() => _isLoading = false);
 
     if (success) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text("Thêm sản phẩm thành công!")));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            widget.product == null
+                ? "Thêm sản phẩm thành công!"
+                : "Cập nhật sản phẩm thành công!",
+          ),
+        ),
+      );
       Navigator.pop(context);
     } else {
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(SnackBar(content: Text("Lỗi khi thêm sản phẩm")));
+      ).showSnackBar(SnackBar(content: Text("Lỗi xử lý sản phẩm")));
     }
+  }
+
+  void _showAddVariantDialog() {
+    String color = "";
+    String size = "M";
+    int stock = 0;
+    double pPrice = 0;
+    double sPrice = 0;
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text("Thêm Biến Thể"),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                decoration: InputDecoration(labelText: "Màu sắc (vd: Đỏ)"),
+                onChanged: (v) => color = v,
+              ),
+              DropdownButtonFormField<String>(
+                value: size,
+                items: availableSizes
+                    .map((s) => DropdownMenuItem(value: s, child: Text(s)))
+                    .toList(),
+                onChanged: (v) => size = v!,
+                decoration: InputDecoration(labelText: "Size"),
+              ),
+              TextField(
+                decoration: InputDecoration(labelText: "Số lượng tồn kho"),
+                keyboardType: TextInputType.number,
+                onChanged: (v) => stock = int.tryParse(v) ?? 0,
+              ),
+              TextField(
+                decoration: InputDecoration(labelText: "Giá nhập (VNĐ)"),
+                keyboardType: TextInputType.number,
+                onChanged: (v) => pPrice = double.tryParse(v) ?? 0,
+              ),
+              TextField(
+                decoration: InputDecoration(labelText: "Giá bán (VNĐ)"),
+                keyboardType: TextInputType.number,
+                onChanged: (v) => sPrice = double.tryParse(v) ?? 0,
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text("Hủy"),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              if (color.isNotEmpty) {
+                setState(() {
+                  variants.add(
+                    ProductVariant(
+                      color: color,
+                      size: size,
+                      stock: stock,
+                      purchasePrice: pPrice,
+                      sellingPrice: sPrice,
+                    ),
+                  );
+                });
+                Navigator.pop(context);
+              }
+            },
+            child: Text("Thêm"),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Thêm Sản Phẩm"),
+        title: Text(widget.product == null ? "Thêm Sản Phẩm" : "Sửa Sản Phẩm"),
         elevation: 0,
         backgroundColor: Colors.white,
         foregroundColor: Colors.black,
@@ -126,13 +241,6 @@ class _AddProductScreenState extends State<AddProductScreen> {
               controller: _nameController,
               hintText: "Tên sản phẩm",
               prefixIcon: Icons.label,
-            ),
-            SizedBox(height: 16),
-            CustomTextField(
-              controller: _priceController,
-              hintText: "Giá bán (VNĐ)",
-              prefixIcon: Icons.attach_money,
-              keyboardType: TextInputType.number,
             ),
             SizedBox(height: 16),
             CustomTextField(
@@ -191,8 +299,13 @@ class _AddProductScreenState extends State<AddProductScreen> {
             DropdownButton<String>(
               value: selectedCategory,
               isExpanded: true,
-              items: categories
-                  .map((e) => DropdownMenuItem(value: e, child: Text(e)))
+              items: categoryOptions
+                  .map(
+                    (e) => DropdownMenuItem(
+                      value: e['id'],
+                      child: Text(e['name']!),
+                    ),
+                  )
                   .toList(),
               onChanged: (v) => setState(() => selectedCategory = v!),
             ),
@@ -202,43 +315,49 @@ class _AddProductScreenState extends State<AddProductScreen> {
             DropdownButton<String>(
               value: selectedGender,
               isExpanded: true,
-              items: [
-                'Men',
-                'Women',
-                'Unisex',
-                'Kids',
-              ].map((e) => DropdownMenuItem(value: e, child: Text(e))).toList(),
+              items: genderOptions
+                  .map(
+                    (e) => DropdownMenuItem(
+                      value: e['id'],
+                      child: Text(e['name']!),
+                    ),
+                  )
+                  .toList(),
               onChanged: (v) => setState(() => selectedGender = v!),
             ),
             SizedBox(height: 16),
 
-            CustomTextField(
-              controller: _colorsController,
-              hintText: "Màu sắc (phân cách bằng dấu phẩy, vd: Red, Blue)",
-              prefixIcon: Icons.color_lens,
+            Text(
+              "Biến thể (Variants):",
+              style: TextStyle(fontWeight: FontWeight.bold),
             ),
-            SizedBox(height: 16),
-
-            Text("Size:", style: TextStyle(fontWeight: FontWeight.bold)),
-            Wrap(
-              spacing: 8,
-              children: availableSizes.map((size) {
-                return FilterChip(
-                  label: Text(size),
-                  selected: selectedSizes.contains(size),
-                  onSelected: (bool selected) {
-                    setState(() {
-                      if (selected) {
-                        selectedSizes.add(size);
-                      } else {
-                        selectedSizes.remove(size);
-                      }
-                    });
-                  },
+            SizedBox(height: 8),
+            ListView.builder(
+              shrinkWrap: true,
+              physics: NeverScrollableScrollPhysics(),
+              itemCount: variants.length,
+              itemBuilder: (context, index) {
+                final v = variants[index];
+                return Card(
+                  margin: EdgeInsets.only(bottom: 8),
+                  child: ListTile(
+                    title: Text("${v.color} - ${v.size}"),
+                    subtitle: Text(
+                      "Kho: ${v.stock} | Nhập: ${v.purchasePrice} | Bán: ${v.sellingPrice}",
+                    ),
+                    trailing: IconButton(
+                      icon: Icon(Icons.delete, color: Colors.red),
+                      onPressed: () => setState(() => variants.removeAt(index)),
+                    ),
+                  ),
                 );
-              }).toList(),
+              },
             ),
-            SizedBox(height: 16),
+            CustomButton(
+              text: "Thêm Biến Thể",
+              onPressed: _showAddVariantDialog,
+            ),
+            SizedBox(height: 24),
 
             SwitchListTile(
               title: Text("Nổi bật (Featured)"),

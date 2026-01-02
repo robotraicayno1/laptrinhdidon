@@ -1,5 +1,6 @@
 import 'package:clothesapp/screens/admin/admin_chat_list_screen.dart';
 import 'package:clothesapp/screens/admin/admin_order_screen.dart';
+import 'package:clothesapp/screens/admin/inventory_management_screen.dart';
 import 'package:clothesapp/screens/admin/manage_products_screen.dart';
 import 'package:clothesapp/screens/admin/voucher_screen.dart';
 import 'package:flutter/material.dart';
@@ -31,6 +32,21 @@ class AdminDashboard extends StatelessWidget {
                   context,
                   MaterialPageRoute(
                     builder: (_) => ManageProductsScreen(token: token),
+                  ),
+                );
+              },
+            ),
+            SizedBox(height: 20),
+            _buildAdminCard(
+              context,
+              icon: Icons.inventory,
+              title: "Quản Lý Kho Hàng",
+              subtitle: "Kiểm soát tồn kho & Giá nhập/bán",
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => InventoryManagementScreen(token: token),
                   ),
                 );
               },
@@ -103,7 +119,7 @@ class AdminDashboard extends StatelessWidget {
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.05),
+              color: Colors.black.withValues(alpha: 0.05),
               blurRadius: 10,
               offset: Offset(0, 4),
             ),
@@ -114,7 +130,7 @@ class AdminDashboard extends StatelessWidget {
             Container(
               padding: EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: Theme.of(context).primaryColor.withOpacity(0.1),
+                color: Theme.of(context).primaryColor.withValues(alpha: 0.1),
                 shape: BoxShape.circle,
               ),
               child: Icon(

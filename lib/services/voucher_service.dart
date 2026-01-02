@@ -1,13 +1,10 @@
 import 'dart:convert';
+import 'package:clothesapp/core/constants/api_constants.dart';
 import 'package:clothesapp/models/voucher.dart';
-import 'package:clothesapp/services/auth_service.dart';
 import 'package:http/http.dart' as http;
 
 class VoucherService {
-  final String baseUrl = AuthService.baseUrl.replaceAll(
-    '/api',
-    '/api/vouchers',
-  );
+  final String baseUrl = ApiConstants.vouchersSubRoute;
 
   Future<List<Voucher>> getVouchers() async {
     try {
@@ -19,7 +16,7 @@ class VoucherService {
         throw Exception("Failed to load vouchers");
       }
     } catch (e) {
-      print(e);
+      // print(e);
       return [];
     }
   }
@@ -42,7 +39,7 @@ class VoucherService {
       );
       return response.statusCode == 200;
     } catch (e) {
-      print(e);
+      // print(e);
       return false;
     }
   }
@@ -71,7 +68,7 @@ class VoucherService {
       }
       return null;
     } catch (e) {
-      print(e);
+      // print(e);
       return null;
     }
   }

@@ -1,7 +1,6 @@
 import 'package:clothesapp/models/product.dart';
 import 'package:clothesapp/screens/product_detail_screen.dart';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 
 class ProductCard extends StatelessWidget {
   final Product product;
@@ -19,8 +18,6 @@ class ProductCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final currencyFormat = NumberFormat.currency(locale: 'vi_VN', symbol: '₫');
-
     return GestureDetector(
       onTap: () {
         Navigator.push(
@@ -35,54 +32,118 @@ class ProductCard extends StatelessWidget {
         width: width,
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(24),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.05),
-              blurRadius: 10,
-              offset: Offset(0, 4),
+              color: Colors.black.withValues(alpha: 0.04),
+              blurRadius: 20,
+              offset: const Offset(0, 8),
             ),
           ],
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            ClipRRect(
-              borderRadius: BorderRadius.only(
-                topLeft: Radius.circular(16),
-                topRight: Radius.circular(16),
-              ),
-              child: Image.network(
-                product.imageUrl,
-                height: 180,
-                width: double.infinity,
-                fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) => Container(
-                  height: 180,
-                  color: Colors.grey[200],
-                  child: Icon(Icons.broken_image, color: Colors.grey),
+            Stack(
+              children: [
+                ClipRRect(
+                  borderRadius: const BorderRadius.vertical(
+                    top: Radius.circular(24),
+                  ),
+                  child: Image.network(
+                    product.fullImageUrl,
+                    height: 180,
+                    width: double.infinity,
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) => Container(
+                      height: 180,
+                      color: Colors.grey[100],
+                      child: const Icon(Icons.broken_image, color: Colors.grey),
+                    ),
+                  ),
                 ),
-              ),
+                if (product.isBestSeller)
+                  Positioned(
+                    top: 12,
+                    left: 12,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 6,
+                      ),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF59E0B),
+                        borderRadius: BorderRadius.circular(30),
+                      ),
+                      child: const Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.star, color: Colors.white, size: 12),
+                          SizedBox(width: 4),
+                          Text(
+                            'Bán Chạy',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 10,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+              ],
             ),
             Padding(
-              padding: const EdgeInsets.all(12.0),
+              padding: const EdgeInsets.all(16.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
+                    _getCategoryName(product.category).toUpperCase(),
+                    style: TextStyle(
+                      letterSpacing: 1.2,
+                      fontSize: 10,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.indigo[400],
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
                     product.name,
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 15,
+                      color: Color(0xFF0F172A),
+                    ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
-                  SizedBox(height: 4),
-                  Text(
-                    currencyFormat.format(product.price),
-                    style: TextStyle(
-                      fontWeight: FontWeight.w600,
-                      color: Colors.grey[700],
-                      fontSize: 13,
-                    ),
+                  const SizedBox(height: 8),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        product.priceRange,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.w800,
+                          color: Color(0xFF0F172A),
+                          fontSize: 10,
+                        ),
+                      ),
+                      Container(
+                        padding: const EdgeInsets.all(6),
+                        decoration: BoxDecoration(
+                          color: Colors.black,
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: const Icon(
+                          Icons.add,
+                          color: Colors.white,
+                          size: 16,
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
@@ -91,5 +152,22 @@ class ProductCard extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  String _getCategoryName(String id) {
+    switch (id) {
+      case 'Men':
+        return 'Nam';
+      case 'Women':
+        return 'Nữ';
+      case 'Pants':
+        return 'Quần';
+      case 'Shirts':
+        return 'Áo';
+      case 'Accessories':
+        return 'Phụ kiện';
+      default:
+        return id;
+    }
   }
 }

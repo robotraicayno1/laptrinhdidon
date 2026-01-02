@@ -21,7 +21,14 @@ const orderSchema = mongoose.Schema({
                 type: Number,
                 required: true,
             },
-            // Snapshot of price/name at time of purchase is good practice, but keeping it simple for now as per plan
+            selectedColor: {
+                type: String,
+                required: true,
+            },
+            selectedSize: {
+                type: String,
+                required: true,
+            },
         }
     ],
     totalPrice: {
@@ -35,6 +42,18 @@ const orderSchema = mongoose.Schema({
     discountAmount: {
         type: Number,
         default: 0,
+    },
+    shippingFee: {
+        type: Number,
+        default: 0,
+    },
+    appTransId: {
+        type: String,
+        default: '',
+    },
+    trackingNumber: {
+        type: String,
+        default: '',
     },
     status: {
         type: Number,

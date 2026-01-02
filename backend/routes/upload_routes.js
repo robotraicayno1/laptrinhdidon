@@ -42,16 +42,9 @@ uploadRouter.post('/', (req, res) => {
             if (req.file == undefined) {
                 res.status(400).json({ msg: 'No file selected!' });
             } else {
-                // Return the full URL
-                // Note: Protocol and Host should ideally be dynamic or env vars
-                const protocol = req.protocol;
-                const host = req.get('host');
-                const fileUrl = `${protocol}://${host}/uploads/${req.file.filename}`;
-
                 res.json({
                     msg: 'File Uploaded!',
-                    file: `uploads/${req.file.filename}`,
-                    url: fileUrl
+                    url: `uploads/${req.file.filename}`
                 });
             }
         }

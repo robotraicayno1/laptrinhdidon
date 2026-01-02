@@ -80,16 +80,25 @@ router.get('/favorites', auth, async (req, res) => {
 // Add to Cart
 router.post('/cart', auth, async (req, res) => {
     try {
-        const { productId, quantity } = req.body;
+        const { productId, quantity, selectedColor, selectedSize } = req.body;
         let user = await User.findById(req.user);
 
-        const isProductFound = user.cart.find(item => item.product.equals(productId));
+        // Find if the exact variant is already in cart
+        const existingItem = user.cart.find(item =>
+            item.product.equals(productId) &&
+            item.selectedColor === selectedColor &&
+            item.selectedSize === selectedSize
+        );
 
-        if (isProductFound) {
-            let item = user.cart.find(item => item.product.equals(productId));
-            item.quantity += quantity; // Increase quantity
+        if (existingItem) {
+            existingItem.quantity += quantity;
         } else {
-            user.cart.push({ product: productId, quantity: quantity });
+            user.cart.push({
+                product: productId,
+                quantity,
+                selectedColor: selectedColor || '',
+                selectedSize: selectedSize || ''
+            });
         }
 
         await user.save();
@@ -103,7 +112,7 @@ router.post('/cart', auth, async (req, res) => {
 router.delete('/cart/:id', auth, async (req, res) => {
     try {
         let user = await User.findById(req.user);
-        user.cart = user.cart.filter(item => !item.product.equals(req.params.id));
+        user.cart = user.cart.filter(item => !item._id.equals(req.params.id));
         await user.save();
         res.json(user.cart);
     } catch (e) {

@@ -70,24 +70,23 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
     final result = await _userService.updateProfile(updateData, widget.token);
 
-    if (mounted) {
-      setState(() => _isLoading = false);
-      if (result != null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Cập nhật hồ sơ thành công!")),
-        );
-        _passwordController.clear();
-        // Update local data with result
-        setState(() {
-          _nameController.text = result['name'] ?? '';
-          _phoneController.text = result['phone'] ?? '';
-          _addressController.text = result['address'] ?? '';
-        });
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Cập nhật thất bại. Vui lòng thử lại.")),
-        );
-      }
+    if (!mounted) return;
+    setState(() => _isLoading = false);
+    if (result != null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Cập nhật hồ sơ thành công!")),
+      );
+      _passwordController.clear();
+      // Update local data with result
+      setState(() {
+        _nameController.text = result['name'] ?? '';
+        _phoneController.text = result['phone'] ?? '';
+        _addressController.text = result['address'] ?? '';
+      });
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Cập nhật thất bại. Vui lòng thử lại.")),
+      );
     }
   }
 
@@ -108,15 +107,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
-          "Hồ Sơ Của Tôi",
-          style: TextStyle(color: Colors.black),
-        ),
-        backgroundColor: Colors.white,
+        title: Text("Hồ Sơ Của Tôi", style: theme.textTheme.headlineMedium),
+        backgroundColor: theme.scaffoldBackgroundColor,
         elevation: 0,
-        iconTheme: const IconThemeData(color: Colors.black),
+        iconTheme: theme.iconTheme,
       ),
       body: _isLoadingUserData
           ? const Center(child: CircularProgressIndicator())
@@ -124,15 +121,21 @@ class _ProfileScreenState extends State<ProfileScreen> {
               padding: const EdgeInsets.all(16.0),
               child: Column(
                 children: [
-                  const CircleAvatar(
+                  CircleAvatar(
                     radius: 50,
-                    backgroundColor: Colors.blueGrey,
-                    child: Icon(Icons.person, size: 50, color: Colors.white),
+                    backgroundColor: theme.colorScheme.primary, // Gold
+                    child: Icon(
+                      Icons.person,
+                      size: 50,
+                      color: theme.colorScheme.onPrimary,
+                    ),
                   ),
                   const SizedBox(height: 16),
                   Text(
                     widget.user['email'] ?? '',
-                    style: const TextStyle(color: Colors.grey),
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: Colors.white70,
+                    ),
                   ),
                   const SizedBox(height: 32),
 
@@ -140,18 +143,21 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     "Họ và Tên",
                     _nameController,
                     Icons.person_outline,
+                    theme,
                   ),
                   const SizedBox(height: 16),
                   _buildTextField(
                     "Số điện thoại",
                     _phoneController,
                     Icons.phone_android_outlined,
+                    theme,
                   ),
                   const SizedBox(height: 16),
                   _buildTextField(
                     "Địa chỉ",
                     _addressController,
                     Icons.location_on_outlined,
+                    theme,
                     maxLines: 2,
                   ),
                   const SizedBox(height: 16),
@@ -159,39 +165,46 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     "Đổi mật khẩu (Để trống nếu không đổi)",
                     _passwordController,
                     Icons.lock_outline,
+                    theme,
                     isPassword: true,
                   ),
 
                   const SizedBox(height: 32),
                   SizedBox(
                     width: double.infinity,
-                    height: 50,
+                    height: 54,
                     child: ElevatedButton(
                       onPressed: _isLoading ? null : _updateProfile,
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.black,
+                        backgroundColor: theme.colorScheme.primary,
+                        foregroundColor: theme.colorScheme.onPrimary,
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
+                          borderRadius: BorderRadius.circular(16),
                         ),
+                        elevation: 0,
                       ),
                       child: _isLoading
-                          ? const CircularProgressIndicator(color: Colors.white)
+                          ? CircularProgressIndicator(
+                              color: theme.colorScheme.onPrimary,
+                            )
                           : const Text(
                               "LƯU THAY ĐỔI",
                               style: TextStyle(
-                                color: Colors.white,
                                 fontWeight: FontWeight.bold,
+                                fontSize: 16,
                               ),
                             ),
                     ),
                   ),
 
                   const SizedBox(height: 48),
-                  const Divider(),
+                  Divider(color: theme.dividerColor),
                   const SizedBox(height: 16),
-                  const Text(
+                  Text(
                     "Hỗ trợ khách hàng",
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    style: theme.textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                   const SizedBox(height: 16),
                   Row(
@@ -200,16 +213,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         child: OutlinedButton.icon(
                           onPressed: _makeCall,
                           icon: const Icon(Icons.call, color: Colors.green),
-                          label: const Text(
-                            "Gọi Hỗ Trợ",
-                            style: TextStyle(color: Colors.black),
+                          label: Text(
+                            "Gọi",
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              fontSize: 13,
+                            ),
                           ),
                           style: OutlinedButton.styleFrom(
                             padding: const EdgeInsets.symmetric(vertical: 12),
+                            side: BorderSide(color: theme.dividerColor),
                           ),
                         ),
                       ),
-                      const SizedBox(width: 16),
+
+                      const SizedBox(width: 8),
                       Expanded(
                         child: OutlinedButton.icon(
                           onPressed: () {
@@ -225,14 +242,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           },
                           icon: const FaIcon(
                             FontAwesomeIcons.commentDots,
-                            color: Colors.blue,
+                            color: Colors.orange,
                           ),
-                          label: const Text(
-                            "Chat với Admin",
-                            style: TextStyle(color: Colors.black),
+                          label: Text(
+                            "Chat",
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              fontSize: 13,
+                            ),
                           ),
                           style: OutlinedButton.styleFrom(
                             padding: const EdgeInsets.symmetric(vertical: 12),
+                            side: BorderSide(color: theme.dividerColor),
                           ),
                         ),
                       ),
@@ -247,7 +267,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Widget _buildTextField(
     String label,
     TextEditingController controller,
-    IconData icon, {
+    IconData icon,
+    ThemeData theme, {
     bool isPassword = false,
     int maxLines = 1,
   }) {
@@ -255,10 +276,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
       controller: controller,
       obscureText: isPassword,
       maxLines: maxLines,
+      style: theme.textTheme.bodyLarge,
       decoration: InputDecoration(
         labelText: label,
-        prefixIcon: Icon(icon),
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+        labelStyle: theme.textTheme.bodyMedium?.copyWith(color: Colors.white54),
+        prefixIcon: Icon(icon, color: theme.iconTheme.color),
+        filled: true,
+        fillColor: theme.inputDecorationTheme.fillColor,
+        border: theme.inputDecorationTheme.border,
+        enabledBorder: theme.inputDecorationTheme.enabledBorder,
+        focusedBorder: theme.inputDecorationTheme.focusedBorder,
         contentPadding: const EdgeInsets.symmetric(
           horizontal: 16,
           vertical: 12,

@@ -2,7 +2,6 @@ import 'package:clothesapp/models/product.dart';
 import 'package:clothesapp/screens/admin/add_product_screen.dart';
 import 'package:clothesapp/services/product_service.dart';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 
 class ManageProductsScreen extends StatefulWidget {
   final String token;
@@ -53,15 +52,16 @@ class _ManageProductsScreenState extends State<ManageProductsScreen> {
         product.id,
         widget.token,
       );
+      if (!mounted) return;
       if (success) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text("Đã xóa sản phẩm!")));
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Xóa sản phẩm thành công!")),
+        );
         _loadProducts();
       } else {
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text("Lỗi xóa sản phẩm")));
+        ).showSnackBar(const SnackBar(content: Text("Lỗi khi xóa sản phẩm!")));
       }
     }
   }
@@ -109,7 +109,7 @@ class _ManageProductsScreenState extends State<ManageProductsScreen> {
                 leading: ClipRRect(
                   borderRadius: BorderRadius.circular(8),
                   child: Image.network(
-                    product.imageUrl,
+                    product.fullImageUrl,
                     width: 60,
                     height: 60,
                     fit: BoxFit.cover,
@@ -122,15 +122,30 @@ class _ManageProductsScreenState extends State<ManageProductsScreen> {
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(fontWeight: FontWeight.bold),
                 ),
-                subtitle: Text(
-                  NumberFormat.currency(
-                    locale: 'vi_VN',
-                    symbol: '₫',
-                  ).format(product.price),
-                ),
-                trailing: IconButton(
-                  icon: Icon(Icons.delete, color: Colors.red),
-                  onPressed: () => _deleteProduct(product),
+                subtitle: Text(product.priceRange),
+                trailing: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    IconButton(
+                      icon: Icon(Icons.edit, color: Colors.blue),
+                      onPressed: () async {
+                        await Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => AddProductScreen(
+                              token: widget.token,
+                              product: product,
+                            ),
+                          ),
+                        );
+                        _loadProducts();
+                      },
+                    ),
+                    IconButton(
+                      icon: Icon(Icons.delete, color: Colors.red),
+                      onPressed: () => _deleteProduct(product),
+                    ),
+                  ],
                 ),
               );
             },

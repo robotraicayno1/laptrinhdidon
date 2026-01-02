@@ -1,20 +1,31 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:clothesapp/core/constants/api_constants.dart';
 
 class UserService {
-  final String baseUrl =
-      'http://192.168.2.23:3000/api/user'; // Ensure this matches your backend IP
+  final String baseUrl = ApiConstants.userSubRoute;
 
-  Future<bool> addToCart(String productId, int quantity, String token) async {
+  Future<bool> addToCart(
+    String productId,
+    int quantity,
+    String selectedColor,
+    String selectedSize,
+    String token,
+  ) async {
     try {
       final response = await http.post(
         Uri.parse('$baseUrl/cart'),
         headers: {'Content-Type': 'application/json', 'x-auth-token': token},
-        body: jsonEncode({'productId': productId, 'quantity': quantity}),
+        body: jsonEncode({
+          'productId': productId,
+          'quantity': quantity,
+          'selectedColor': selectedColor,
+          'selectedSize': selectedSize,
+        }),
       );
       return response.statusCode == 200;
     } catch (e) {
-      print(e);
+      // print(e);
       return false;
     }
   }
@@ -28,7 +39,7 @@ class UserService {
       );
       return response.statusCode == 200;
     } catch (e) {
-      print(e);
+      // print(e);
       return false;
     }
   }
@@ -44,7 +55,7 @@ class UserService {
       }
       return null;
     } catch (e) {
-      print(e);
+      // print(e);
       return null;
     }
   }
@@ -64,7 +75,7 @@ class UserService {
       }
       return null;
     } catch (e) {
-      print(e);
+      // print(e);
       return null;
     }
   }
@@ -80,7 +91,7 @@ class UserService {
       }
       return [];
     } catch (e) {
-      print(e);
+      // print(e);
       return [];
     }
   }

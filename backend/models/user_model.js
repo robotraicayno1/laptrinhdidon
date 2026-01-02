@@ -12,7 +12,6 @@ const userSchema = new mongoose.Schema({
         unique: true,
         trim: true,
         lowercase: true,
-        // Simple regex for email validation
         match: [/\S+@\S+\.\S+/, 'Please use a valid email address']
     },
     password: {
@@ -48,11 +47,26 @@ const userSchema = new mongoose.Schema({
                 type: Number,
                 required: true,
             },
+            selectedColor: {
+                type: String,
+                default: '',
+            },
+            selectedSize: {
+                type: String,
+                default: '',
+            },
         }
     ],
     createdAt: {
         type: Date,
         default: Date.now
+    },
+    resetPasswordToken: {
+        type: String,
+        default: ''
+    },
+    resetPasswordExpires: {
+        type: Date
     }
 });
 

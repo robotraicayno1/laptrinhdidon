@@ -1,10 +1,10 @@
 import 'dart:convert';
+import 'package:clothesapp/core/constants/api_constants.dart';
 import 'package:clothesapp/models/review.dart';
-import 'package:clothesapp/services/auth_service.dart';
 import 'package:http/http.dart' as http;
 
 class ReviewService {
-  final String baseUrl = AuthService.baseUrl;
+  final String baseUrl = ApiConstants.baseUrl;
 
   Future<List<Review>> getReviews(String productId) async {
     try {
@@ -22,7 +22,7 @@ class ReviewService {
         throw Exception('Failed to load reviews');
       }
     } catch (e) {
-      print('Error loading reviews: $e');
+      // print('Error loading reviews: $e');
       return [];
     }
   }
@@ -41,7 +41,7 @@ class ReviewService {
       );
       return response.statusCode == 201;
     } catch (e) {
-      print('Error adding review: $e');
+      // print('Error adding review: $e');
       return false;
     }
   }
@@ -54,7 +54,7 @@ class ReviewService {
       );
       return response.statusCode == 200;
     } catch (e) {
-      print('Error deleting review: $e');
+      // print('Error deleting review: $e');
       return false;
     }
   }

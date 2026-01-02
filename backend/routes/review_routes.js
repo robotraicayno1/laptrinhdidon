@@ -27,6 +27,12 @@ router.post('/products/:productId/reviews', auth, async (req, res) => {
             return res.status(404).json({ msg: 'Product not found' });
         }
 
+        // Check if user already reviewed this product
+        const existingReview = await Review.findOne({ productId, userId: req.user });
+        if (existingReview) {
+            return res.status(400).json({ msg: 'You have already reviewed this product' });
+        }
+
         // Create new review
         let review = new Review({
             productId,

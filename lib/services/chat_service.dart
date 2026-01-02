@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:clothesapp/core/constants/api_constants.dart';
 
 class ChatMessage {
   final String id;
@@ -28,7 +29,7 @@ class ChatMessage {
 }
 
 class ChatService {
-  final String baseUrl = 'http://192.168.2.23:3000/api/chat';
+  final String baseUrl = ApiConstants.chatSubRoute;
 
   Future<List<ChatMessage>> getChatHistory(
     String otherUserId,
@@ -44,7 +45,7 @@ class ChatService {
         return data.map((m) => ChatMessage.fromJson(m)).toList();
       }
     } catch (e) {
-      print(e);
+      // print(e);
     }
     return [];
   }
@@ -58,7 +59,7 @@ class ChatService {
       );
       return response.statusCode == 200;
     } catch (e) {
-      print(e);
+      // print(e);
       return false;
     }
   }
@@ -74,7 +75,7 @@ class ChatService {
         return List<Map<String, dynamic>>.from(data);
       }
     } catch (e) {
-      print(e);
+      // print(e);
     }
     return [];
   }

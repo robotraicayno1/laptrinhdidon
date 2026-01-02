@@ -162,12 +162,12 @@ class _VoucherScreenState extends State<VoucherScreen> {
                       padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                       decoration: BoxDecoration(
                         color: voucher.isActive
-                            ? Colors.green.withOpacity(0.1)
-                            : Colors.red.withOpacity(0.1),
+                            ? Colors.green.withValues(alpha: 0.1)
+                            : Colors.red.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Text(
-                        voucher.isActive ? "Active" : "Inactive",
+                        voucher.isActive ? "Đang chạy" : "Ngưng",
                         style: TextStyle(
                           color: voucher.isActive ? Colors.green : Colors.red,
                           fontSize: 12,
@@ -181,9 +181,12 @@ class _VoucherScreenState extends State<VoucherScreen> {
                           voucher.id,
                           widget.token,
                         );
+                        if (!mounted) return;
                         if (success) {
                           ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text("Đã xóa voucher!")),
+                            const SnackBar(
+                              content: Text("Xóa voucher thành công!"),
+                            ),
                           );
                           _loadVouchers();
                         }

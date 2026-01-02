@@ -1,5 +1,13 @@
 const mongoose = require('mongoose');
 
+const variantSchema = new mongoose.Schema({
+    color: { type: String, required: true },
+    size: { type: String, required: true },
+    stock: { type: Number, default: 0, min: 0 },
+    purchasePrice: { type: Number, default: 0 }, // Giá nhập
+    sellingPrice: { type: Number, default: 0 },  // Giá bán
+});
+
 const productSchema = new mongoose.Schema({
     name: {
         type: String,
@@ -13,7 +21,7 @@ const productSchema = new mongoose.Schema({
     },
     price: {
         type: Number,
-        required: true,
+        required: false,
     },
     imageUrl: {
         type: String,
@@ -29,12 +37,7 @@ const productSchema = new mongoose.Schema({
         enum: ['Men', 'Women', 'Unisex', 'Kids'],
         default: 'Unisex',
     },
-    colors: [{
-        type: String,
-    }],
-    sizes: [{
-        type: String,
-    }],
+    variants: [variantSchema],
     isFeatured: {
         type: Boolean,
         default: false,

@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:clothesapp/core/constants/api_constants.dart';
 import 'package:http/http.dart' as http;
 import 'package:clothesapp/models/product.dart';
 
@@ -6,6 +7,8 @@ class Order {
   final String id;
   final List<Product> products;
   final List<int> quantities;
+  final List<String> selectedColors;
+  final List<String> selectedSizes;
   final String address;
   final String userId;
   final String userName;
@@ -13,11 +16,16 @@ class Order {
   final int orderedAt;
   final int status;
   final double totalPrice;
+  final double shippingFee;
+  final String appTransId;
+  final String trackingNumber;
 
   Order({
     required this.id,
     required this.products,
     required this.quantities,
+    required this.selectedColors,
+    required this.selectedSizes,
     required this.address,
     required this.userId,
     required this.userName,
@@ -25,23 +33,29 @@ class Order {
     required this.orderedAt,
     required this.status,
     required this.totalPrice,
+    required this.shippingFee,
+    required this.appTransId,
+    required this.trackingNumber,
   });
 
   factory Order.fromJson(Map<String, dynamic> json) {
     try {
       List<Product> products = [];
       List<int> quantities = [];
+      List<String> selectedColors = [];
+      List<String> selectedSizes = [];
 
       if (json['products'] != null) {
         for (var item in json['products']) {
           if (item['product'] != null) {
             products.add(Product.fromJson(item['product']));
             quantities.add(item['quantity'] ?? 1);
+            selectedColors.add(item['selectedColor'] ?? '');
+            selectedSizes.add(item['selectedSize'] ?? '');
           }
         }
       }
 
-      // Robustly handle createdAt (can be int or String)
       int parseTime(dynamic value) {
         if (value is int) return value;
         if (value is String) {
@@ -55,6 +69,8 @@ class Order {
         id: json['_id'] ?? '',
         products: products,
         quantities: quantities,
+        selectedColors: selectedColors,
+        selectedSizes: selectedSizes,
         address: json['address'] ?? '',
         userId: json['userId'] is Map
             ? (json['userId']['_id'] ?? '')
@@ -66,25 +82,28 @@ class Order {
         orderedAt: parseTime(json['createdAt']),
         status: json['status'] ?? 0,
         totalPrice: (json['totalPrice'] ?? 0).toDouble(),
+        shippingFee: (json['shippingFee'] ?? 0).toDouble(),
+        appTransId: json['appTransId'] ?? '',
+        trackingNumber: json['trackingNumber'] ?? '',
       );
     } catch (e) {
-      print('Error parsing Order: $e');
+      // print('Error parsing Order: $e');
       rethrow;
     }
   }
 }
 
 class OrderService {
-  final String baseUrl = 'http://192.168.2.23:3000/api/orders';
+  final String baseUrl = ApiConstants.ordersSubRoute;
 
-  // Place an order (Checkout)
-  Future<bool> placeOrder({
+  Future<Map<String, dynamic>?> placeOrder({
     required double totalPrice,
     required String address,
-    required List<dynamic> cart, // Passing cart structure intact
+    required List<dynamic> cart,
     required String token,
     String voucherCode = '',
     double discountAmount = 0.0,
+    double shippingFee = 0.0,
   }) async {
     try {
       final response = await http.post(
@@ -95,17 +114,19 @@ class OrderService {
           'cart': cart,
           'voucherCode': voucherCode,
           'discountAmount': discountAmount,
+          'shippingFee': shippingFee,
           'address': address,
         }),
       );
-      return response.statusCode == 200;
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      }
+      return null;
     } catch (e) {
-      print(e);
-      return false;
+      return null;
     }
   }
 
-  // Get My Orders
   Future<List<Order>> getMyOrders(String token) async {
     List<Order> orderList = [];
     try {
@@ -119,12 +140,11 @@ class OrderService {
         }
       }
     } catch (e) {
-      print(e);
+      // print(e);
     }
     return orderList;
   }
 
-  // Get All Orders (Admin)
   Future<List<Order>> getAllOrders(String token) async {
     List<Order> orderList = [];
     try {
@@ -132,32 +152,47 @@ class OrderService {
         Uri.parse(baseUrl),
         headers: {'x-auth-token': token},
       );
-      print('Admin Orders Status: ${response.statusCode}');
       if (response.statusCode == 200) {
         for (var item in jsonDecode(response.body)) {
           orderList.add(Order.fromJson(item));
         }
-      } else {
-        print('Admin Orders Error: ${response.body}');
       }
     } catch (e) {
-      print(e);
+      // print(e);
     }
     return orderList;
   }
 
-  // Update Status (Admin)
-  Future<bool> updateOrderStatus(String id, int status, String token) async {
+  Future<Map<String, dynamic>> updateOrderStatus(
+    String id,
+    int status,
+    String token, {
+    String? trackingNumber,
+  }) async {
     try {
       final response = await http.put(
         Uri.parse('$baseUrl/$id/status'),
         headers: {'Content-Type': 'application/json', 'x-auth-token': token},
-        body: jsonEncode({'status': status}),
+        body: jsonEncode({
+          'status': status,
+          if (trackingNumber != null) 'trackingNumber': trackingNumber,
+        }),
       );
-      return response.statusCode == 200;
+      final body = jsonDecode(response.body);
+      if (response.statusCode == 200) {
+        return {'success': true, 'data': body};
+      } else {
+        return {
+          'success': false,
+          'message': body['msg'] ?? body['error'] ?? 'Đã có lỗi xảy ra',
+        };
+      }
     } catch (e) {
-      print(e);
-      return false;
+      return {'success': false, 'message': e.toString()};
     }
+  }
+
+  Future<Map<String, dynamic>> cancelOrder(String id, String token) async {
+    return await updateOrderStatus(id, 4, token);
   }
 }
